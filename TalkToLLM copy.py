@@ -126,12 +126,10 @@ async def get_transcript(callback):
         deepgram: DeepgramClient = DeepgramClient("", config)
 
         dg_connection = deepgram.listen.asynclive.v("1")
+        trigger_phase = False
 
-        microphone = Microphone(dg_connection.send)
-        microphone.start()
-        print("Model is listening...")
-
-        async def on_message(self, result, **kwargs):
+        async def trigger_phase(self, result, **kwargs):
+            trigger_phase = True
             sentence = result.channel.alternatives[0].transcript
             
             if not result.speech_final:
@@ -143,10 +141,29 @@ async def get_transcript(callback):
                     full_sentence = full_sentence.strip()
                     callback(full_sentence)
                     transcript_collector.reset()
+                    transcription_complete.set()
+
+        async def on_message(self, result, **kwargs):
+            print("Model is Listening...")
+            sentence = result.channel.alternatives[0].transcript
+            
+            if not result.speech_final:
+                transcript_collector.add_part(sentence)
+            else:
+                transcript_collector.add_part(sentence)
+                full_sentence = transcript_collector.get_full_transcript()
+                if len(full_sentence.strip()) > 0:
+                    full_sentence = full_sentence.strip()
                     print(f"You: {full_sentence}")
+                    callback(full_sentence)
+                    transcript_collector.reset()
                     transcription_complete.set()
         
-        dg_connection.on(LiveTranscriptionEvents.Transcript, on_message)
+        # check if the trigger phrase is detected and dynamically switch the event handler
+        if trigger_phase:
+            dg_connection.on(LiveTranscriptionEvents.Transcript, trigger_phase)
+        else:
+            dg_connection.on(LiveTranscriptionEvents.Transcript, on_message)
 
         options = LiveOptions(
             model="nova-2",
@@ -160,6 +177,9 @@ async def get_transcript(callback):
         )
 
         await dg_connection.start(options)
+
+        microphone = Microphone(dg_connection.send)
+        microphone.start()
 
         await transcription_complete.wait()
 
@@ -175,12 +195,10 @@ class Conversation:
     def __init__(self):
         self.transcription_response = ""
         self.llm = LanguageModelProcessor()
-        self.triggered = True
 
     async def main(self):
         def handle_full_sentence(full_sentence):
             self.transcription_response = full_sentence
-    
 
         while True:
             await get_transcript(handle_full_sentence)

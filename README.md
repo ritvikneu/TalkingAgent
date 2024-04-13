@@ -1,5 +1,5 @@
 # TalkingAgent
-<h4> This is Terminal based AI Agent where you can have a conversation with any LLM model.Deepgram’s Aura Text to Speech and Nova Speech to Text models and Groq API are used, I have chosen these to have minimum latency and for the feel of real time conversation (these APIs are currently free to use)</h4>
+**This is Terminal based AI Agent where you can have a conversation with any LLM model.Deepgram’s Aura Text to Speech and Nova Speech to Text models and Groq API are used, I have chosen these to have minimum latency and for the feel of real time conversation (these APIs are currently free to use)**
 
 Steps to run the code
 - pip install -r requirements.txt
@@ -12,3 +12,5 @@ Library and Frameworks used
 - [Langchain] (https://www.langchain.com/) 
 - [Groq] (https://wow.groq.com/)
 - [Deepgram] (https://deepgram.com/)
+
+**Learn more by doing more, here's where I started <a href="https://www.buildfastwithai.com/#courses">@BuildFastWithAI</a>**
